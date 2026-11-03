@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Açaí do Xômano - Pedido Online</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Syne"', 'sans-serif'],
+          },
+          colors: {
+            acai: {
+              DEFAULT: '#4a0e4e',
+              dark: '#240428',
+              deep: '#150119',
+              light: '#6d1872',
+              accent: '#ff2a7a',
+              gold: '#f59e0b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Estilos de seleção de itens */
+    .pill-btn {
+      transition: all 0.15s ease-in-out;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .pill-btn.active-free {
+      background-color: #6d1872 !important;
+      color: #ffffff !important;
+      border-color: #c084fc !important;
+      box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.4);
+    }
+    .pill-btn.active-paid {
+      background-color: #f59e0b !important;
+      color: #150119 !important;
+      border-color: #fbbf24 !important;
+      font-weight: 700;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+    }
+    
+    /* Scrollbar minimalista */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #150119;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4a0e4e;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-[#150119] text-stone-100 font-sans min-h-screen flex flex-col pb-28 md:pb-16 select-none">
+
+  <!-- AVISO DE RETIRADA NO TOPO -->
+  <div class="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-stone-950 text-xs sm:text-sm font-extrabold py-2 px-3 text-center flex items-center justify-center gap-2 shadow-md">
+    <i class="fa-solid fa-store"></i>
+    <span>ATENDIMENTO EXCLUSIVO PARA RETIRADA NO BALCÃO • NÃO FAZEMOS ENTREGA</span>
+  </div>
+
+  <!-- TOAST NOTIFICAÇÃO -->
+  <div id="toast-container" class="fixed top-12 right-4 z-[90] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- CABEÇALHO -->
+  <header class="bg-[#240428]/90 backdrop-blur-md sticky top-0 z-40 border-b border-purple-900/60 shadow-xl">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-acai to-acai-accent flex items-center justify-center text-2xl shadow-lg ring-2 ring-purple-500/20">
+          🍧
+        </div>
+        <div>
+          <h1 class="font-display font-extrabold text-lg sm:text-xl text-white tracking-tight leading-none">
+            AÇAÍ DO <span class="text-acai-accent">XÔMANO</span>
+          </h1>
+          <p class="text-xs text-amber-300 font-semibold flex items-center gap-1.5 mt-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Aberto • Balcão Rápido
+          </p>
+        </div>
+      </div>
+
+      <!-- BOTÃO CARRINHO SUPERIOR -->
+      <button type="button" onclick="openCartModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2.5 rounded-xl shadow-lg transition active:scale-95 cursor-pointer">
+        <i class="fa-solid fa-basket-shopping text-sm"></i>
+        <span class="hidden sm:inline text-xs font-bold uppercase tracking-wider">Ver Carrinho</span>
+        <span id="badge-top-cart" class="bg-emerald-950 text-emerald-300 text-xs font-black px-2 py-0.5 rounded-full">0</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- BANNER PRINCIPAL -->
+  <section class="max-w-4xl mx-auto px-4 pt-5 w-full">
+    <div class="bg-gradient-to-r from-[#320838] via-[#4a0e4e] to-[#240428] rounded-3xl p-5 sm:p-6 border border-purple-800/60 shadow-2xl relative overflow-hidden">
+      <div class="relative z-10 space-y-2">
+        <span class="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+          <i class="fa-solid fa-clock"></i> Monte sem fila e retire rapidinho
+        </span>
+        <h2 class="text-xl sm:text-2xl md:text-3xl font-display font-black text-white leading-tight">
+          Açaí Gelado, Cremoso e do Seu Jeito!
+        </h2>
+        <p class="text-xs sm:text-sm text-purple-200 max-w-lg leading-relaxed">
+          Escolha o copo ou marmita, escolha frutas e complementos grátis e envie para o nosso WhatsApp. Nós montamos para você só passar e retirar!
+        </p>
+      </div>
+      <div class="absolute -right-2 -bottom-4 text-7xl sm:text-8xl opacity-15 pointer-events-none select-none">
+        🍇
+      </div>
+    </div>
+  </section>
+
+  <!-- LISTA DE TAMANHOS DO CARDÁPIO -->
+  <main class="max-w-4xl mx-auto px-4 py-6 w-full space-y-4">
+    <div class="flex items-center justify-between border-b border-purple-900/40 pb-2">
+      <div>
+        <h3 class="font-display font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+          <span>🥤</span> 1º Passo: Escolha o Tamanho
+        </h3>
+        <p class="text-xs text-purple-300">Clique em "Montar" para escolher frutas, complementos e caldas</p>
+      </div>
+      <span class="text-[11px] text-amber-400 font-bold bg-amber-950/60 border border-amber-800/50 px-2.5 py-1 rounded-lg">
+        Tabela Oficial
+      </span>
+    </div>
+
+    <!-- Grid de Tamanhos -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5" id="sizes-grid">
+      <!-- Gerado por Javascript -->
+    </div>
+  </main>
+
+  <!-- ==================== MODAL DE MONTAGEM ==================== -->
+  <div id="modal-builder" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-[#200324] border border-purple-800/60 w-full max-w-xl max-h-[92vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden animate-slideUp">
+      
+      <!-- Cabeçalho Modal -->
+      <div class="p-4 bg-gradient-to-r from-acai-dark to-acai border-b border-purple-800/60 flex items-center justify-between flex-shrink-0">
+        <div>
+          <h3 id="builder-size-title" class="font-display font-black text-white text-base leading-tight">
+            Monte seu Açaí
+          </h3>
+          <p id="builder-size-desc" class="text-xs text-amber-300 font-bold">Base: R$ 0,00</p>
+        </div>
+        <button type="button" onclick="closeBuilderModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-purple-200 flex items-center justify-center cursor-pointer transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Conteúdo com Scroll -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+
+        <!-- 1. Frutas -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-purple-300">
+              🍓 Frutas
+            </span>
+            <span class="text-[10px] text-emerald-400 font-bold">4 opções grátis</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2" id="builder-fruits-grid"></div>
+        </div>
+
+        <!-- 2. Ingredientes Grátis -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-purple-300">
+              ✨ Ingredientes (Grátis)
+            </span>
+            <span class="text-[10px] text-emerald-400 font-bold">Escolha os favoritos</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2" id="builder-free-grid"></div>
+        </div>
+
+        <!-- 3. Caldas Grátis -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-purple-300">
+              🍯 Caldas (Grátis)
+            </span>
+            <span class="text-[10px] text-emerald-400 font-bold">100% Grátis</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2" id="builder-syrups-grid"></div>
+        </div>
+
+        <!-- 4. Adicionais Pagos -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-purple-300">
+              🍫 Adicionais Especiais (Opcional)
+            </span>
+            <span class="text-[10px] text-amber-400 font-bold">Cremes, Fini e Chocolates</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2" id="builder-paid-grid"></div>
+        </div>
+
+        <!-- 5. Observação -->
+        <div class="space-y-1 pt-2">
+          <label class="block text-xs font-bold text-purple-200">Alguma observação para montagem?</label>
+          <input type="text" id="builder-notes" placeholder="Ex: Caprichar no leite condensado, montar em camadas..." class="w-full p-2.5 bg-[#150119] border border-purple-800/60 rounded-xl text-white placeholder-purple-400/40 text-xs focus:ring-2 focus:ring-acai-accent focus:outline-none">
+        </div>
+
+      </div>
+
+      <!-- Rodapé do Modal -->
+      <div class="p-4 bg-[#18021c] border-t border-purple-900/60 flex items-center justify-between gap-3 flex-shrink-0">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-purple-300 block">Subtotal deste Açaí</span>
+          <span id="builder-total-display" class="text-xl font-display font-black text-amber-400">R$ 0,00</span>
+        </div>
+
+        <button type="button" onclick="confirmAddToCart()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-stone-950 font-black px-5 py-3 rounded-xl shadow-lg active:scale-95 transition flex items-center gap-2 text-xs sm:text-sm cursor-pointer">
+          <i class="fa-solid fa-check"></i>
+          <span>Confirmar e Adicionar</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE CARRINHO / FECHAMENTO ==================== -->
+  <div id="modal-cart" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-[#200324] border border-purple-800/60 w-full max-w-lg max-h-[92vh] rounded-t-3xl sm:rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+      
+      <!-- Cabeçalho Carrinho -->
+      <div class="p-4 bg-[#18021c] border-b border-purple-900/60 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-basket-shopping text-emerald-400 text-lg"></i>
+          <h3 class="font-display font-black text-base text-white">Seu Pedido - Retirada no Balcão</h3>
+        </div>
+        <button type="button" onclick="closeCartModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-purple-200 flex items-center justify-center cursor-pointer transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Conteúdo do Carrinho -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
+        
+        <!-- Alerta Balcão -->
+        <div class="bg-amber-400/10 border border-amber-400/30 p-3 rounded-xl flex items-center gap-2.5 text-amber-300">
+          <i class="fa-solid fa-store text-lg flex-shrink-0"></i>
+          <p class="leading-tight">
+            <strong>Retirada no Balcão:</strong> Pedido preparado para retirada direta na loja pelo cliente. Não há taxa de entrega.
+          </p>
+        </div>
+
+        <!-- Lista de Itens -->
+        <div id="cart-items-list" class="space-y-3">
+          <!-- Gerado por JS -->
+        </div>
+
+        <!-- Formulário do Cliente -->
+        <div class="pt-3 border-t border-purple-900/60 space-y-3">
+          <div>
+            <label class="block font-bold text-white mb-1">Seu Nome para Identificação *</label>
+            <input type="text" id="cust-name" placeholder="Ex: Lucas Henrique" class="w-full p-2.5 bg-[#150119] border border-purple-800/60 rounded-xl text-white placeholder-purple-400/40 text-xs sm:text-sm focus:ring-2 focus:ring-acai-accent focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-bold text-white mb-1">Forma de Pagamento no Balcão *</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button type="button" onclick="selectPayment('Pix')" id="pay-Pix" class="pay-btn p-2 rounded-xl border border-purple-800 bg-purple-950/40 font-bold text-stone-200 text-center cursor-pointer">
+                Pix
+              </button>
+              <button type="button" onclick="selectPayment('Dinheiro')" id="pay-Dinheiro" class="pay-btn p-2 rounded-xl border border-purple-800 bg-purple-950/40 font-bold text-stone-200 text-center cursor-pointer">
+                Dinheiro
+              </button>
+              <button type="button" onclick="selectPayment('Débito')" id="pay-Débito" class="pay-btn p-2 rounded-xl border border-purple-800 bg-purple-950/40 font-bold text-stone-200 text-center cursor-pointer">
+                Débito
+              </button>
+              <button type="button" onclick="selectPayment('Crédito')" id="pay-Crédito" class="pay-btn p-2 rounded-xl border border-purple-800 bg-purple-950/40 font-bold text-stone-200 text-center cursor-pointer">
+                Crédito
+              </button>
+            </div>
+          </div>
+
+          <div id="box-troco" class="hidden">
+            <label class="block font-bold text-amber-300 mb-1">Precisa de troco para quanto?</label>
+            <input type="text" id="cust-troco" placeholder="Ex: Troco para R$ 50,00 ou Não preciso" class="w-full p-2 bg-[#150119] border border-amber-400/50 rounded-xl text-white text-xs focus:outline-none">
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Rodapé do Carrinho com Envio no WhatsApp -->
+      <div class="p-4 bg-[#18021c] border-t border-purple-900/60 flex flex-col gap-3 flex-shrink-0">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-purple-300">Total do Pedido:</span>
+          <span id="cart-grand-total" class="text-xl font-display font-black text-amber-400">R$ 0,00</span>
+        </div>
+
+        <button type="button" onclick="finalizeWhatsAppOrder()" id="btn-submit-order" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 px-4 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wide cursor-pointer">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          <span>Enviar Pedido para o WhatsApp</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BARRA INFERIOR FIXA (MOBILE) -->
+  <div class="fixed bottom-0 left-0 right-0 p-3 bg-[#18021c]/95 backdrop-blur-md border-t border-purple-900/60 z-30 flex items-center justify-between shadow-2xl">
+    <div>
+      <span class="text-[10px] font-bold text-purple-300 uppercase tracking-wider block">Total no Balcão</span>
+      <span id="bar-bottom-total" class="text-base sm:text-lg font-black text-amber-400 font-display">R$ 0,00</span>
+    </div>
+
+    <button type="button" onclick="openCartModal()" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-stone-950 font-black px-4 py-2.5 rounded-xl shadow active:scale-95 text-xs flex items-center gap-2 cursor-pointer transition">
+      <i class="fa-solid fa-basket-shopping"></i>
+      <span>Ver Pedido (<span id="bar-bottom-count">0</span>)</span>
+    </button>
+  </div>
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    const STORE_WHATSAPP = "5565993623223";
+
+    // CARDÁPIO OFICIAL
+    const SIZES = [
+      { id: '200ml', name: '200ml', price: 10.00, desc: 'Copo individual pequeno' },
+      { id: '300ml', name: '300ml', price: 14.00, desc: 'Copo tradicional' },
+      { id: '400ml', name: '400ml', price: 16.00, desc: 'Copo médio caprichado' },
+      { id: '500ml', name: '500ml', price: 19.00, desc: 'Copo grande mais pedido', highlight: true },
+      { id: '700ml', name: '700ml', price: 27.00, desc: 'Copo super grande' },
+      { id: '1L', name: 'Marmita 1L', price: 38.00, desc: 'Marmita família especial' }
+    ];
+
+    const FRUITS = [
+      { id: 'banana', name: 'Banana', price: 0.00 },
+      { id: 'abacaxi', name: 'Abacaxi', price: 0.00 },
+      { id: 'salada-frutas', name: 'Salada de Frutas', price: 0.00 },
+      { id: 'uva', name: 'Uva', price: 0.00 },
+      { id: 'kiwi', name: 'Kiwi', price: 4.00 },
+      { id: 'morango', name: 'Morango', price: 4.00 }
+    ];
+
+    const FREE_INGREDIENTS = [
+      'Leite em Pó', 'Granola', 'Paçoca', 'Ovomaltine',
+      'Amendoim', 'Canudo wafer', 'Confeti', 'Choco Ball',
+      'Leite condensado', 'Mel'
+    ];
+
+    const SYRUPS = [
+      'Calda de morango', 'Calda de caramelo', 'Calda de chocolate', 'Calda de chiclete'
+    ];
+
+    const PAID_EXTRAS = [
+      { id: 'bala-amora', name: 'Bala amora', price: 0.50 },
+      { id: 'confete-coracao', name: 'Confette de coração', price: 0.50 },
+      { id: 'marshmallow', name: 'Marshmallow', price: 1.00 },
+      { id: 'tubes-fini', name: 'Tubes fini', price: 1.00 },
+      { id: 'tubes-fini-grande', name: 'Tubes fini grande', price: 2.00 },
+      { id: 'kit-kat', name: 'Kit-kat', price: 2.00 },
+      { id: 'gotas-chocolate', name: 'Gotas de chocolate', price: 3.00 },
+      { id: 'creme-cupuacu', name: 'Creme de cupuaçu', price: 4.00 },
+      { id: 'creme-maracuja', name: 'Creme de maracujá', price: 4.00 },
+      { id: 'creme-ninho', name: 'Creme de ninho', price: 4.00 },
+      { id: 'nutella', name: 'Nutella', price: 5.00 }
+    ];
+
+    // ESTADO DA APLICAÇÃO
+    let cart = [];
+    let activeSize = null;
+    let selectedFruits = [];
+    let selectedFree = [];
+    let selectedSyrups = [];
+    let selectedPaid = [];
+    let chosenPayment = 'Pix';
+
+    function formatCurrency(num) {
+      return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // RENDERIZAR TAMANHOS NA TELA INICIAL
+    function renderSizes() {
+      const container = document.getElementById('sizes-grid');
+      container.innerHTML = SIZES.map(s => `
+        <div class="bg-[#200324] border ${s.highlight ? 'border-amber-400 shadow-amber-950/40' : 'border-purple-900/60'} rounded-2xl p-4 flex flex-col justify-between shadow-lg relative">
+          ${s.highlight ? '<span class="absolute -top-2.5 right-3 bg-amber-400 text-stone-950 text-[10px] font-black uppercase px-2 py-0.5 rounded-full">Destaque</span>' : ''}
+          <div>
+            <span class="text-2xl">${s.id === '1L' ? '📦' : '🥤'}</span>
+            <h4 class="font-display font-extrabold text-white text-base mt-1">${s.name}</h4>
+            <p class="text-[11px] text-purple-300 mt-0.5 leading-tight">${s.desc}</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-purple-900/50 flex items-center justify-between">
+            <span class="font-display font-black text-amber-400 text-sm sm:text-base">${formatCurrency(s.price)}</span>
+            <button type="button" onclick="openBuilder('${s.id}')" class="bg-purple-900 hover:bg-acai-accent text-white font-bold text-xs px-3 py-1.5 rounded-xl transition cursor-pointer active:scale-95">
+              Montar
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // MODAL BUILDER
+    function openBuilder(sizeId) {
+      activeSize = SIZES.find(s => s.id === sizeId) || SIZES[3];
+      selectedFruits = [];
+      selectedFree = [];
+      selectedSyrups = [];
+      selectedPaid = [];
+      document.getElementById('builder-notes').value = '';
+
+      document.getElementById('builder-size-title').textContent = `Montar Açaí ${activeSize.name}`;
+      document.getElementById('builder-size-desc').textContent = `${activeSize.desc} • Base: ${formatCurrency(activeSize.price)}`;
+
+      renderBuilderOptions();
+      updateBuilderSubtotal();
+
+      document.getElementById('modal-builder').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeBuilderModal() {
+      document.getElementById('modal-builder').classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    function renderBuilderOptions() {
+      // 1. Frutas
+      document.getElementById('builder-fruits-grid').innerHTML = FRUITS.map(f => {
+        const isSel = selectedFruits.some(item => item.id === f.id);
+        const isPaid = f.price > 0;
+        return `
+          <button type="button" onclick="toggleFruit('${f.id}')" class="pill-btn p-2 rounded-xl border border-purple-900/60 bg-purple-950/40 text-left flex items-center justify-between text-xs cursor-pointer ${isSel ? (isPaid ? 'active-paid' : 'active-free') : 'text-stone-300'}">
+            <span class="truncate">${f.name}</span>
+            <span class="text-[10px] font-bold ${isSel ? '' : (isPaid ? 'text-amber-400' : 'text-emerald-400')}">
+              ${isPaid ? `+${formatCurrency(f.price)}` : 'Grátis'}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      // 2. Ingredientes Grátis
+      document.getElementById('builder-free-grid').innerHTML = FREE_INGREDIENTS.map(item => {
+        const isSel = selectedFree.includes(item);
+        return `
+          <button type="button" onclick="toggleFree('${item}')" class="pill-btn p-2 rounded-xl border border-purple-900/60 bg-purple-950/40 text-left flex items-center justify-between text-xs cursor-pointer ${isSel ? 'active-free' : 'text-stone-300'}">
+            <span class="truncate">${item}</span>
+            <span class="text-[10px] font-bold ${isSel ? '' : 'text-emerald-400'}">Grátis</span>
+          </button>
+        `;
+      }).join('');
+
+      // 3. Caldas Grátis
+      document.getElementById('builder-syrups-grid').innerHTML = SYRUPS.map(item => {
+        const isSel = selectedSyrups.includes(item);
+        return `
+          <button type="button" onclick="toggleSyrup('${item}')" class="pill-btn p-2 rounded-xl border border-purple-900/60 bg-purple-950/40 text-left flex items-center justify-between text-xs cursor-pointer ${isSel ? 'active-free' : 'text-stone-300'}">
+            <span class="truncate">${item}</span>
+            <span class="text-[10px] font-bold ${isSel ? '' : 'text-emerald-400'}">Grátis</span>
+          </button>
+        `;
+      }).join('');
+
+      // 4. Adicionais Pagos
+      document.getElementById('builder-paid-grid').innerHTML = PAID_EXTRAS.map(extra => {
+        const isSel = selectedPaid.some(item => item.id === extra.id);
+        return `
+          <button type="button" onclick="togglePaidExtra('${extra.id}')" class="pill-btn p-2 rounded-xl border border-purple-900/60 bg-purple-950/40 text-left flex items-center justify-between text-xs cursor-pointer ${isSel ? 'active-paid' : 'text-stone-300'}">
+            <span class="truncate">${extra.name}</span>
+            <span class="text-[10px] font-black ${isSel ? '' : 'text-amber-400'}">+${formatCurrency(extra.price)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function toggleFruit(id) {
+      const fruit = FRUITS.find(f => f.id === id);
+      const index = selectedFruits.findIndex(f => f.id === id);
+      if (index > -1) selectedFruits.splice(index, 1);
+      else selectedFruits.push(fruit);
+      renderBuilderOptions();
+      updateBuilderSubtotal();
+    }
+
+    function toggleFree(item) {
+      const idx = selectedFree.indexOf(item);
+      if (idx > -1) selectedFree.splice(idx, 1);
+      else selectedFree.push(item);
+      renderBuilderOptions();
+    }
+
+    function toggleSyrup(item) {
+      const idx = selectedSyrups.indexOf(item);
+      if (idx > -1) selectedSyrups.splice(idx, 1);
+      else selectedSyrups.push(item);
+      renderBuilderOptions();
+    }
+
+    function togglePaidExtra(id) {
+      const extra = PAID_EXTRAS.find(e => e.id === id);
+      const index = selectedPaid.findIndex(e => e.id === id);
+      if (index > -1) selectedPaid.splice(index, 1);
+      else selectedPaid.push(extra);
+      renderBuilderOptions();
+      updateBuilderSubtotal();
+    }
+
+    function calculateCurrentSubtotal() {
+      if (!activeSize) return 0;
+      let total = activeSize.price;
+      selectedFruits.forEach(f => total += f.price);
+      selectedPaid.forEach(e => total += e.price);
+      return total;
+    }
+
+    function updateBuilderSubtotal() {
+      document.getElementById('builder-total-display').textContent = formatCurrency(calculateCurrentSubtotal());
+    }
+
+    function confirmAddToCart() {
+      const notes = document.getElementById('builder-notes').value.trim();
+      const finalPrice = calculateCurrentSubtotal();
+
+      const item = {
+        id: Date.now() + Math.random(),
+        size: activeSize,
+        fruits: [...selectedFruits],
+        freeItems: [...selectedFree],
+        syrups: [...selectedSyrups],
+        paidExtras: [...selectedPaid],
+        notes: notes,
+        unitPrice: finalPrice,
+        qty: 1
+      };
+
+      cart.push(item);
+      closeBuilderModal();
+      updateCartTotals();
+      showToast(`${activeSize.name} adicionado ao pedido!`, 'success');
+    }
+
+    // GESTÃO DO CARRINHO
+    function updateCartTotals() {
+      const totalCount = cart.reduce((acc, i) => acc + i.qty, 0);
+      const grandTotal = cart.reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
+
+      document.getElementById('badge-top-cart').textContent = totalCount;
+      document.getElementById('bar-bottom-count').textContent = totalCount;
+      document.getElementById('bar-bottom-total').textContent = formatCurrency(grandTotal);
+      document.getElementById('cart-grand-total').textContent = formatCurrency(grandTotal);
+
+      const submitBtn = document.getElementById('btn-submit-order');
+      if (cart.length === 0) {
+        submitBtn.classList.add('opacity-50', 'pointer-events-none');
+      } else {
+        submitBtn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    }
+
+    function openCartModal() {
+      renderCartItems();
+      selectPayment(chosenPayment);
+      document.getElementById('modal-cart').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('modal-cart').classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    function removeCartItem(id) {
+      cart = cart.filter(item => item.id !== id);
+      renderCartItems();
+      updateCartTotals();
+      showToast('Item removido do pedido', 'info');
+    }
+
+    function renderCartItems() {
+      const container = document.getElementById('cart-items-list');
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-purple-300/70 space-y-2">
+            <div class="text-3xl">🍧</div>
+            <p class="font-bold text-white text-sm">Nenhum item adicionado ainda</p>
+            <p class="text-xs">Selecione um tamanho e monte o seu açaí!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = cart.map((item, idx) => {
+        const fruitsText = item.fruits.map(f => `${f.name}${f.price > 0 ? ` (+${formatCurrency(f.price)})` : ''}`).join(', ');
+        const freeText = item.freeItems.join(', ');
+        const syrupsText = item.syrups.join(', ');
+        const extrasText = item.paidExtras.map(e => `${e.name} (+${formatCurrency(e.price)})`).join(', ');
+
+        return `
+          <div class="bg-purple-950/40 border border-purple-900/60 rounded-xl p-3 space-y-1.5">
+            <div class="flex items-start justify-between">
+              <div>
+                <h5 class="font-display font-extrabold text-white text-sm">
+                  ${idx + 1}. Açaí ${item.size.name}
+                </h5>
+                <span class="text-xs font-bold text-amber-400 font-display">${formatCurrency(item.unitPrice * item.qty)}</span>
+              </div>
+              <button type="button" onclick="removeCartItem(${item.id})" class="text-purple-400 hover:text-red-400 p-1 cursor-pointer">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+
+            <div class="text-[11px] text-purple-200 space-y-0.5 bg-[#150119] p-2 rounded-lg border border-purple-900/40">
+              ${fruitsText ? `<p><strong class="text-emerald-400">Frutas:</strong> ${fruitsText}</p>` : ''}
+              ${freeText ? `<p><strong class="text-purple-300">Complementos:</strong> ${freeText}</p>` : ''}
+              ${syrupsText ? `<p><strong class="text-pink-400">Caldas:</strong> ${syrupsText}</p>` : ''}
+              ${extrasText ? `<p><strong class="text-amber-400">Adicionais:</strong> ${extrasText}</p>` : ''}
+              ${item.notes ? `<p class="italic text-stone-300">Obs: ${item.notes}</p>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectPayment(method) {
+      chosenPayment = method;
+      ['Pix', 'Dinheiro', 'Débito', 'Crédito'].forEach(m => {
+        const btn = document.getElementById(`pay-${m}`);
+        if (!btn) return;
+        if (m === method) {
+          btn.className = "pay-btn p-2 rounded-xl border-2 border-emerald-400 bg-emerald-950/50 font-bold text-white text-center cursor-pointer shadow";
+        } else {
+          btn.className = "pay-btn p-2 rounded-xl border border-purple-800 bg-purple-950/40 font-bold text-stone-300 text-center cursor-pointer";
+        }
+      });
+
+      const trocoBox = document.getElementById('box-troco');
+      trocoBox.classList.toggle('hidden', method !== 'Dinheiro');
+    }
+
+    // FINALIZAR PEDIDO NO WHATSAPP
+    function finalizeWhatsAppOrder() {
+      if (cart.length === 0) {
+        showToast('Adicione ao menos um açaí!', 'warning');
+        return;
+      }
+
+      const nameInput = document.getElementById('cust-name');
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        showToast('Informe o seu nome para o pedido.', 'warning');
+        nameInput.focus();
+        return;
+      }
+
+      let trocoInfo = '';
+      if (chosenPayment === 'Dinheiro') {
+        const trocoVal = document.getElementById('cust-troco').value.trim();
+        trocoInfo = trocoVal ? ` (Troco para: ${trocoVal})` : ' (Sem troco)';
+      }
+
+      const grandTotal = cart.reduce((acc, i) => acc + (i.unitPrice * i.qty), 0);
+      const orderCode = 'XOM-' + Math.floor(1000 + Math.random() * 9000);
+      const dataHora = new Date().toLocaleString('pt-BR');
+
+      // Formatação 100% universal e limpa sem caracteres especiais que quebram na URL
+      let msg = `*PEDIDO PARA RETIRADA NO BALCAO*\n`;
+      msg += `*ACAI DO XOMANO*\n`;
+      msg += `--------------------------------\n`;
+      msg += `*Pedido:* #${orderCode}\n`;
+      msg += `*Data:* ${dataHora}\n`;
+      msg += `*Cliente:* ${name}\n`;
+      msg += `*Modalidade:* RETIRADA NO BALCAO\n`;
+      msg += `--------------------------------\n\n`;
+
+      msg += `*ITENS ESCOLHIDOS:*\n`;
+      cart.forEach((item, index) => {
+        msg += `\n*${index + 1}. Acai ${item.size.name}* - ${formatCurrency(item.unitPrice * item.qty)}\n`;
+        if (item.fruits.length) {
+          msg += `  > Frutas: ${item.fruits.map(f => f.name + (f.price > 0 ? ` (+${formatCurrency(f.price)})` : '')).join(', ')}\n`;
+        }
+        if (item.freeItems.length) {
+          msg += `  > Complementos: ${item.freeItems.join(', ')}\n`;
+        }
+        if (item.syrups.length) {
+          msg += `  > Caldas: ${item.syrups.join(', ')}\n`;
+        }
+        if (item.paidExtras.length) {
+          msg += `  > Adicionais: ${item.paidExtras.map(e => `${e.name} (+${formatCurrency(e.price)})`).join(', ')}\n`;
+        }
+        if (item.notes) {
+          msg += `  > Obs: _${item.notes}_\n`;
+        }
+      });
+
+      msg += `\n--------------------------------\n`;
+      msg += `*TOTAL A PAGAR: ${formatCurrency(grandTotal)}*\n`;
+      msg += `*Forma de Pagamento:* ${chosenPayment}${trocoInfo}\n`;
+      msg += `--------------------------------\n\n`;
+      msg += `_Vou retirar no balcao da loja. Por favor, confirmem o preparo! Obrigado!_`;
+
+      const encodedMsg = encodeURIComponent(msg);
+      const whatsappUrl = `https://wa.me/${STORE_WHATSAPP}?text=${encodedMsg}`;
+
+      // Limpar carrinho após envio
+      cart = [];
+      updateCartTotals();
+      closeCartModal();
+
+      showToast('Redirecionando para o WhatsApp...', 'success');
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 400);
+    }
+
+    // TOAST
+    function showToast(text, type = 'success') {
+      const box = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const borders = {
+        success: 'border-emerald-500',
+        warning: 'border-amber-500',
+        info: 'border-purple-500'
+      };
+
+      toast.className = `bg-[#240428] border-l-4 ${borders[type] || 'border-purple-500'} text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold border border-purple-900/60 transition-all duration-200`;
+      toast.textContent = text;
+      
+      box.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 200);
+      }, 2500);
+    }
+
+    // INICIALIZAÇÃO
+    window.onload = function() {
+      renderSizes();
+      updateCartTotals();
+    };
+  </script>
+</body>
+</html>
